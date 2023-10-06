@@ -19,7 +19,12 @@
 								</div>
 								<div class="pl-1">
 									<p>Price: <b>$@product.Price.ToString("0.00")</b></p>
+									@if (product.Quantity <= 0)
+									{
+										<h6 class="card-title h5 text-danger">Out of Stock</h6>
+									}
 								</div>
+								
 							</div>
 						</div>
 						<div>

@@ -50,6 +50,7 @@ namespace ProductCatalogWeb.Areas.Customer.Controllers
         [Authorize]
         public async Task<IActionResult> Details(ShoppingCart shoppingCart)
         {
+            var success = true; 
             var claimsIdentity = User.Identity as ClaimsIdentity;
             var claim = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier);
             shoppingCart.IdentityUserId = claim.Value;
@@ -59,16 +60,32 @@ namespace ProductCatalogWeb.Areas.Customer.Controllers
 
             if (cartFromDb == null)
             {
-                _unitOfWork.ShoppingCart.Add(shoppingCart);
+                success = _unitOfWork.ShoppingCart.Add(shoppingCart);
             }
             else
             {
-                _unitOfWork.ShoppingCart.IncrementCount(cartFromDb, shoppingCart.Count);
+               success =  _unitOfWork.ShoppingCart.IncrementCount(cartFromDb, shoppingCart.Count);
             }
-            _unitOfWork.SaveChanges();
-            HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart.GetAllAsync(u => u.IdentityUserId == claim.Value).Result.Count());
+            if(success)
+            {
+                _unitOfWork.SaveChanges();
+                HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCart.GetAllAsync(u => u.IdentityUserId == claim.Value).Result.Count());
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                if(cartFromDb?.Product.Quantity > 0)
+                {
+                    TempData["error"] = $"Only {cartFromDb?.Product.Quantity} Available";
 
-            return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+
+                    TempData["error"] = "Out of Stock";
+                }
+            }
+            return View("Details");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

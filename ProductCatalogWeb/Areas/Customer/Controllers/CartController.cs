@@ -40,8 +40,14 @@ namespace ProductCatalogWeb.Areas.Customer.Controllers
 		public async Task<IActionResult> plus(int? cartId)
 		{
 			var cart = await _unitOfWork.ShoppingCart.GetAsync(u => u.Id == cartId);
-			_unitOfWork.ShoppingCart.IncrementCount(cart, 1);
+			var success = _unitOfWork.ShoppingCart.IncrementCount(cart, 1);
+			if (!success)
+			{
+				TempData["error"] = "No more Available";
+
+			}
 			_unitOfWork.SaveChanges();
+
 			return Redirect(nameof(Index));
 		}
 		public async Task<IActionResult> minus(int? cartId)
@@ -77,8 +83,8 @@ namespace ProductCatalogWeb.Areas.Customer.Controllers
 			var userId = claims.Value;
 			_unitOfWork.ShoppingCart.Confirm(userId);
 			_unitOfWork.SaveChanges();
-            var count = _unitOfWork.ShoppingCart.GetAllAsync(u => u.IdentityUserId == userId).Result.ToList().Count;
-            HttpContext.Session.SetInt32(SD.SessionCart, count);
+			var count = _unitOfWork.ShoppingCart.GetAllAsync(u => u.IdentityUserId == userId).Result.ToList().Count;
+			HttpContext.Session.SetInt32(SD.SessionCart, count);
 			return View();
         }
     }

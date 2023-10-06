@@ -17,9 +17,19 @@ namespace ProductCatalog.DataAccess.Repository.IRepository
 			_db = db;
 		}
 
-		public void Add(ShoppingCart shoppingCart)
+		public bool Add(ShoppingCart shoppingCart)
 		{
-			_db.ShoppingCarts.Add(shoppingCart);
+			var success = false;
+			var product = _db.Products.SingleOrDefault(p => p.Id == shoppingCart.ProductId);
+			if (product != null)
+			{
+                if (product.Quantity - shoppingCart.Count >= 0)
+                {
+                    _db.ShoppingCarts.Add(shoppingCart);
+                    success = true;
+                }
+            }
+			return success;
 		}
 
 		public async Task<IEnumerable<ShoppingCart>> GetAllAsync(Expression<Func<ShoppingCart, bool>> filter, bool IncludeConfirmed = false)
@@ -46,26 +56,41 @@ namespace ProductCatalog.DataAccess.Repository.IRepository
             shoppingCartFromDB.IsDeleted = true;
         }
 
-        public void IncrementCount(ShoppingCart shoppingCart, int Count)
+        public bool IncrementCount(ShoppingCart shoppingCart, int Count)
 		{
-			shoppingCart.Count += Count;
-		}
+            var success = false;
+			if (shoppingCart.Product.Quantity <= 0)
+			{
+				shoppingCart.IsDeleted = true;
+				return success;
+			}
+
+			if (shoppingCart.Product.Quantity - shoppingCart.Count >= 0)
+            {
+				shoppingCart.Product.Quantity -= shoppingCart.Count;
+                shoppingCart.Count += Count;
+                success = true;
+            }
+            return success;
+        }
 		public void DecrementCount(ShoppingCart shoppingCart, int Count)
 		{
-			shoppingCart.Count -= Count;
+            shoppingCart.Count -= Count;
+
 		}
         
         public  void Confirm(string id)
         {
-
-			var shoppingCartsFromDB =  _db.ShoppingCarts.Where(s => s.IdentityUserId == id).ToList();
+			var shoppingCartsFromDB =  _db.ShoppingCarts.Where(s => s.IdentityUserId == id).Include(p=>p.Product).ToList();
 			if(shoppingCartsFromDB.Count() > 0)
 			{
 				shoppingCartsFromDB.ForEach(s =>
 				{
-					s.IsConfirmed = true;
-				});
+                    s.IsConfirmed = true;
+					
+                });
 			}
+
         }
     }
 }
