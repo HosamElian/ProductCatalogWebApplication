@@ -17,7 +17,9 @@ namespace ProductCatalog.Models.Entity
         [Required]
         [Range(1, 1000_000)]
         public double Price { get; set; }
-        public int Quantity { get; set; }
+		[Range(1, 1000_000)]
+
+		public int Quantity { get; set; }
         [Required]
         [MaxLength(100)]
         public string Name { get; set; }
