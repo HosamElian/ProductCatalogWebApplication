@@ -4,9 +4,8 @@ using ProductCatalog.Models.Entity;
 
 namespace ProductCatalog.Models.ViewModels
 {
-    public class ProductsVM
+    public class ProducstVM
     {
-        public int CategoryId { get; set; }
         public IEnumerable<Product> Products { get; set; }
         [ValidateNever]
         public IEnumerable<SelectListItem> CategoryList { get; set; }

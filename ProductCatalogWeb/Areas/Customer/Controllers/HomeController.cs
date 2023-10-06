@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using ProductCatalog.DataAccess.Repository.IRepository;
 using ProductCatalog.Models;
 using ProductCatalog.Models.Entity;
-using ProductCatalog.Models.ViewModels;
 using ProductCatalog.Utility;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -24,19 +22,10 @@ namespace ProductCatalogWeb.Areas.Customer.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IActionResult> Index(int? id)
+        public async Task<IActionResult> Index()
         {
-            int? this_id = id;
-			var productVM = new ProductsVM() 
-            {
-                Products = await _unitOfWork.Product.GetAllAsync(isUser: true, categoryId:id),
-                CategoryList = _unitOfWork.Category.GetAllAsync().Result.Select(u => new SelectListItem
-				{
-					Text = u.Name,
-					Value = u.Id.ToString()
-				})
-		};
-            return View(productVM);
+            var products = await _unitOfWork.Product.GetAllAsync(isUser:true);
+            return View(products);
         }
         [Authorize]
         public IActionResult Privacy()
